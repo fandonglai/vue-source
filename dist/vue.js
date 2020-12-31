@@ -152,11 +152,20 @@
       attrs,
     };
   }
+  let root = null;
   let stack = []; //栈
   // 处理开始标签
   function start(tagName, attributes) {
     let element = createAstElement(tagName, attributes);
+    let parent = stack[stack.length - 1];
+    if (!root) {
+      root = element;
+    }
     // 每遇到一个开始标签 就放到栈中
+    element.parent = parent; //当放入栈中时 记录父亲是谁
+    if (parent) {
+      parent.children.push(element);
+    }
     stack.push(element);
   }
   // 处理结束标签
@@ -169,7 +178,7 @@
   // 处理标签中的文本
   function chars(text) {
     text = text.replace(/\s/g, ""); //把文本中的空格删除
-    let parent = (stack = stack[stack.length - 1]); //当前文本的parent为栈中的最后一项
+    let parent = stack[stack.length - 1]; //当前文本的parent为栈中的最后一项
     if (text) {
       // 把文本放在父元素下
       parent.children.push({
@@ -242,10 +251,15 @@
         // break;
       }
     }
+    return root;
   }
+
   // 将html解析成ast树 对应的脚本来触发
   function compileTofunction(template) {
-    parserHTML(template);
+    let root = parserHTML(template);
+    console.log(root);
+    // html=》ast=》render函数是虚拟（增加一些额外的属性）=》生成真是dom
+    // 把ast树转为render
   }
 
   function initMixin(Vue) {
